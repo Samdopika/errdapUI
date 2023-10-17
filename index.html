@@ -59,6 +59,22 @@
     var additional_Col_bottle = '';
     var additional_Col_ctd = '';
 
+    // main ERDDAP site URL
+    var main_erddap_url = 'https://data.pmel.noaa.gov/generic/erddap/';
+
+    //cchdo dataset URL
+    var cchdo_bottle_dataset_url = main_erddap_url + 'tabledap/cchdo_bottle';
+    var cchdo_ctd_dataset_url = main_erddap_url+ 'tabledap/cchdo_ctd';
+
+    //query links to gete dropdown menu items
+    var bottle_expocode_array_query = cchdo_bottle_dataset_url + '.json?expocode&distinct()&orderBy(%22expocode%22)';
+    var bottle_section_id_array_query = cchdo_bottle_dataset_url + '.json?section_id&distinct()&orderBy(%22section_id%22)';
+    var ctd_expocode_array_query = cchdo_ctd_dataset_url + '.json?expocode&distinct()&orderBy(%22expocode%22)';
+
+    //dataset metadata json URL
+    cchdo_bottle_metadata = main_erddap_url + 'info/cchdo_bottle/index.json';
+    cchdo_ctd_metadata = main_erddap_url + 'info/cchdo_ctd/index.json';
+
     const checkbox_array = [
       "profile_id",
       "station",
@@ -148,14 +164,8 @@
     var ctd_expocode_array = [];
     var ctd_section_id_array = [];
 
-    //get dropdown data for search field
-    var bottle_expocode_array_query = 'https://data.pmel.noaa.gov/generic/erddap/tabledap/cchdo_bottle.json?expocode&distinct()&orderBy(%22expocode%22)';
-    var bottle_section_id_array_query = 'https://data.pmel.noaa.gov/generic/erddap/tabledap/cchdo_bottle.json?section_id&distinct()&orderBy(%22section_id%22)';
-    var ctd_expocode_array_query = 'https://data.pmel.noaa.gov/generic/erddap/tabledap/cchdo_ctd.json?expocode&distinct()&orderBy(%22expocode%22)';
-    //var ctd_section_id_array_query = 'https://data.pmel.noaa.gov/generic/erddap/tabledap/cchdo_ctd.json?section_id&distinct()&orderBy(%22section_id%22)';
-
     var dataQuery = "";
-    var dataset_url = 'https://data.pmel.noaa.gov/generic/erddap/tabledap/cchdo_bottle';
+    var dataset_url ='';
 
     function getMetadata(){
       //json index from https://data.pmel.noaa.gov/generic/erddap/info/cchdo_bottle/index.json
@@ -177,7 +187,7 @@
 
       //min max from bottle_meta
       $.ajax( {
-          url: 'https://data.pmel.noaa.gov/generic/erddap/info/cchdo_bottle/index.json',
+          url: cchdo_bottle_metadata,
           dataType: 'jsonp',
           jsonp: '.jsonp',
           cache: 'true',
@@ -204,7 +214,7 @@
 
        //min max from ctd_meta
        $.ajax( {
-           url: 'https://data.pmel.noaa.gov/generic/erddap/info/cchdo_ctd/index.json',
+           url: cchdo_ctd_metadata,
            dataType: 'jsonp',
            jsonp: '.jsonp',
            cache: 'true',
@@ -333,7 +343,7 @@
 
       if(dataset =="bottle"){
         additional_Col = additional_Col_bottle;
-        dataset_url = 'https://data.pmel.noaa.gov/generic/erddap/tabledap/cchdo_bottle';
+        dataset_url = cchdo_bottle_dataset_url;
 
         $('#lat_range').text(bottle_lat_range);
         $('#long_range').text(bottle_long_range);
@@ -356,7 +366,7 @@
       } else if(dataset =="ctd"){
         $('#section_id_row').hide();
         additional_Col = additional_Col_ctd;
-        dataset_url = 'https://data.pmel.noaa.gov/generic/erddap/tabledap/cchdo_ctd';
+        dataset_url = cchdo_ctd_dataset_url;
 
         ctd_expocode_array.forEach(function(data){
           var el = document.createElement("option");
@@ -667,10 +677,10 @@
             $(this).find('.btn').toggleClass('btn-primary');
             $(this).find('.btn').toggleClass('btn-default');
             if($('.active').prop('id')=="bottle_data"){
-              dataset_url = 'https://data.pmel.noaa.gov/generic/erddap/tabledap/cchdo_bottle';
+              dataset_url = cchdo_bottle_dataset_url;
               updateMeta("bottle");
             } else if($('.active').prop('id')=="ctd_data"){
-              dataset_url = 'https://data.pmel.noaa.gov/generic/erddap/tabledap/cchdo_ctd';
+              dataset_url = cchdo_ctd_dataset_url;
               updateMeta("ctd");
             }
         });
@@ -681,7 +691,7 @@
 <header>
     <h2>CCHDO Simple Profile Search</h2>
 </header>
-  <h4>Search and download CCHDO data by profile, instead of by full cruise track. For more options, try the advanced (ERDDAP) profile search for <a href="https://data.pmel.noaa.gov/generic/erddap/tabledap/cchdo_bottle_2021.html">bottle data</a> and <a href="https://data.pmel.noaa.gov/generic/erddap/tabledap/cchdo_ctd_2021.html">CTD data</a>.</h4><br>
+  <h4>Search and download CCHDO data by profile, instead of by full cruise track. For more options, try the advanced (ERDDAP) profile search for <a href="https://data.pmel.noaa.gov/generic/erddap/tabledap/cchdo_bottle.html">bottle data</a> and <a href="https://data.pmel.noaa.gov/generic/erddap/tabledap/cchdo_ctd.html">CTD data</a>.</h4><br>
 <div class="container">
 
   Search Dataset: &nbsp;<div class="btn-group btn-toggle">
