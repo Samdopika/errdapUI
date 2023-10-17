@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>CCHDO Simple Profile Search</title>
+    <style>
+    header{
+        /*position: fixed;*/
+        top: 0;
+        /*left:1%;*/
+        width: 100%;
+        height: 10%;
+        background-color: #ddd;
+        z-index:1000;
+    }
+    nav{
+        position: fixed;
+        left: 1%;
+        top:10%;
+        width: 20%;
+        min-width: 120px;
+        background-color: white;
+        height:90%;
+        overflow-y: auto;
+    }
+    #details{
+        /*position: absolute;
+        right: 1%;
+        top:10%;
+        width: 78%;*/
+        /* background-color:#ebe6bc;
+        height:90% */
+        padding-top: 20px;
+    }
+    body{
+        width: 100%;
+        height: 100%;
+    }
+    .param_container { border:2px solid #ccc; width:220px; height: 100px; overflow-y: scroll; }
+
+    </style>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cchdo.ucsd.edu/static/lib/bootstrap/3.3.2/css/bootstrap.min.css">
+    <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+
+    <script>
+    var bottle_lat_range ='';
+    var bottle_long_range = '';
+    var bottle_pressure_range ='';
+    var bottle_date_range ='';
+
+    var ctd_lat_range ='';
+    var ctd_long_range = '';
+    var ctd_pressure_range ='';
+    var ctd_date_range ='';
+
+    var additional_Col = '';
+    var additional_Col_bottle = '';
+    var additional_Col_ctd = '';
+
+    const checkbox_array = [
+      "profile_id",
+      "station",
+      "cast",
+      "sample",
+      "bottle_time",
+      "bottle_number",
+      "bottle_number_qc",
+      "depth",
+      "ctd_temperature",
+      "ctd_salinity",
+      "ctd_salinity_qc",
+      "bottle_salinity",
+      "bottle_salinity_qc",
+      "ctd_oxygen",
+      "ctd_oxygen_ml_l_qc",
+      "oxygen",
+      "oxygen_qc",
+      "silicate",
+      "silicate_qc",
+      "nitrate",
+      "nitrate_qc",
+      "nitrite",
+      "nitrite_qc",
+      "phosphate",
+      "phosphate_qc",
+      "cfc_11",
+      "cfc_11_l_qc",
+      "cfc_12",
+      "cfc_12_qc",
+      "sulfur_hexifluoride",
+      "sulfur_hexifluoride_l_qc",
+      "total_carbon",
+      "total_carbon_qc",
+      "total_alkalinity",
+      "total_alkalinity_qc",
+      "fco2",
+      "fco2_qc",
+      "fco2_temperature",
+      "ph_total_h_scale",
+      "ph_total_h_scale_qc",
+      "ph_temperature",
+      "dissolved_organic_carbon",
+      "dissolved_organic_carbon_qc",
+      "ref_temperature",
+      "ref_temperature_qc",
+      "del_carbon_13_dic",
+      "del_carbon_13_dic_qc",
+      "del_carbon_14_dic",
+      "del_carbon_14_dic_qc",
+      "particulate_organic_carbon",
+      "particulate_organic_carbon_l_qc",
+      "total_dissolved_nitrogen",
+      "particulate_organic_nitrogen_l_qc",
+      "del_oxygen_18",
+      "del_oxygen_18_qc",
+      "ctd_fluor_raw",
+      "ctd_transmissometer_raw",
+      "nitrous_oxide",
+      "nitrous_oxide_qc",
+      "d15n_nitrite_nitrate",
+      "d15n_nitrite_nitrate_qc",
+      "d18o_nitrite_nitrate",
+      "d18o_nitrite_nitrate_qc",
+      "profile_type",
+      "geometry_container"
+    ];
+    const ctd_checkbox_array = [
+      "profile_id",
+      "station",
+      "cast",
+      "sample",
+      "depth",
+      "ctd_temperature",
+      "ctd_salinity",
+      "ctd_salinity_qc",
+      "ctd_oxygen",
+      "ctd_fluor_raw",
+      "ctd_transmissometer_raw",
+      "profile_type",
+      "geometry_container",
+    ];
+    var dropbox_html = '';
+    var additional_vars_html='';
+    var bottle_expocode_array = [];
+    var bottle_section_id_array = [];
+    var ctd_expocode_array = [];
+    var ctd_section_id_array = [];
+
+    //get dropdown data for search field
+    var bottle_expocode_array_query = 'https://data.pmel.noaa.gov/generic/erddap/tabledap/cchdo_bottle.json?expocode&distinct()&orderBy(%22expocode%22)';
+    var bottle_section_id_array_query = 'https://data.pmel.noaa.gov/generic/erddap/tabledap/cchdo_bottle.json?section_id&distinct()&orderBy(%22section_id%22)';
+    var ctd_expocode_array_query = 'https://data.pmel.noaa.gov/generic/erddap/tabledap/cchdo_ctd.json?expocode&distinct()&orderBy(%22expocode%22)';
+    //var ctd_section_id_array_query = 'https://data.pmel.noaa.gov/generic/erddap/tabledap/cchdo_ctd.json?section_id&distinct()&orderBy(%22section_id%22)';
+
+    var dataQuery = "";
+    var dataset_url = 'https://data.pmel.noaa.gov/generic/erddap/tabledap/cchdo_bottle';
+
+    function getMetadata(){
+      //json index from https://data.pmel.noaa.gov/generic/erddap/info/cchdo_bottle/index.json
+      bottle_latMin_index = 9;
+      bottle_latMax_index = 8;
+      bottle_longMin_index = 12;
+      bottle_longMax_index = 11;
+      bottle_pressure_range_index = 127;
+      bottle_date_start_index = 30;
+      bottle_date_end_index = 29;
+
+      ctd_latMin_index = 9;
+      ctd_latMax_index = 8;
+      ctd_longMin_index = 12;
+      ctd_longMax_index = 11;
+      ctd_pressure_range_index = 92;
+      ctd_date_start_index = 28;
+      ctd_date_end_index = 27;
+
+      //min max from bottle_meta
+      $.ajax( {
+          url: 'https://data.pmel.noaa.gov/generic/erddap/info/cchdo_bottle/index.json',
+          dataType: 'jsonp',
+          jsonp: '.jsonp',
+          cache: 'true',
+          success: function(data) {
+            var response = data.table.rows;
+              bottle_lat_range=Math.floor(response[bottle_latMin_index][4]) + ' to ' + Math.ceil(response[bottle_latMax_index][4]);
+              bottle_long_range = Math.floor(response[bottle_longMin_index][4]) + ' to ' + Math.ceil(response[bottle_longMax_index][4]);
+              pressureMinMax = response[bottle_pressure_range_index][4].split(",");
+              bottle_pressure_range = Math.floor(pressureMinMax[0]) + ' to ' + Math.ceil(pressureMinMax[1]);
+              bottle_date_range = response[bottle_date_start_index][4].split("-")[0] + ' to present' ;
+
+              $('#lat_range').text(bottle_lat_range);
+              $('#long_range').text(bottle_long_range);
+              $('#pressure_range').text(bottle_pressure_range);
+              $('#date_range').text(bottle_date_range);
+              console.log($('#lat_range').text);
+          },
+          error: function(xhr, ajaxOptions, thrownError){
+            if (xhr.status==404){
+              console.log("failed to get metadata");
+            }
+          }
+       });
+
+       //min max from ctd_meta
+       $.ajax( {
+           url: 'https://data.pmel.noaa.gov/generic/erddap/info/cchdo_ctd/index.json',
+           dataType: 'jsonp',
+           jsonp: '.jsonp',
+           cache: 'true',
+           success: function(data) {
+             var response = data.table.rows;
+               ctd_lat_range=Math.floor(response[ctd_latMin_index][4]) + ' to ' + Math.ceil(response[ctd_latMax_index][4]);
+               ctd_long_range = Math.floor(response[ctd_longMin_index][4]) + ' to ' + Math.ceil(response[ctd_longMax_index][4]);
+               pressureMinMax = response[ctd_pressure_range_index][4].split(",");
+               ctd_pressure_range = Math.floor(pressureMinMax[0]) + ' to ' + Math.ceil(pressureMinMax[1]);
+               ctd_date_range = response[ctd_date_start_index][4].split("-")[0] + ' to present' ;
+           },
+           error: function(xhr, ajaxOptions, thrownError){
+             if (xhr.status==404){
+               console.log("failed to get metadata");
+             }
+           }
+        });
+
+       //get bottle_expo_code dropdownlist
+       $.ajax( {
+           url: bottle_expocode_array_query,
+           dataType: 'jsonp',
+           jsonp: '.jsonp',
+           cache: 'true',
+           success: function(data) {
+             var response = data.table.rows;
+             var select = document.getElementById("expocode");
+               $.each(response, function(key, row) {
+                    bottle_expocode_array.push(row);
+                    var el = document.createElement("option");
+                    el.textContent = row;
+                    el.value = row;
+                    select.appendChild(el);
+               });
+           },
+           error: function(xhr, ajaxOptions, thrownError){
+             if (xhr.status==404){
+               console.log("failed to get metadata");
+             }
+           }
+        });
+
+        //get bottle_section_id dropdownlist
+
+        $.ajax( {
+            url: bottle_section_id_array_query,
+            dataType: 'jsonp',
+            jsonp: '.jsonp',
+            cache: 'true',
+            success: function(data) {
+              var response = data.table.rows;
+              var select = document.getElementById("section_id");
+                $.each(response, function(key, row) {
+                     bottle_section_id_array.push(row);
+                     var el = document.createElement("option");
+                     el.textContent = row;
+                     el.value = row;
+                     select.appendChild(el);
+                });
+            },
+            error: function(xhr, ajaxOptions, thrownError){
+              if (xhr.status==404){
+                console.log("failed to get metadata");
+              }
+            }
+         });
+
+         //get ctd_expo_code dropdownlist
+         $.ajax( {
+             url: ctd_expocode_array_query,
+             dataType: 'jsonp',
+             jsonp: '.jsonp',
+             cache: 'true',
+             success: function(data) {
+               var response = data.table.rows;
+               var select = document.getElementById("expocode");
+                 $.each(response, function(key, row) {
+                      ctd_expocode_array.push(row);
+                 });
+             },
+             error: function(xhr, ajaxOptions, thrownError){
+               if (xhr.status==404){
+                 console.log("failed to get metadata");
+               }
+             }
+          });
+
+          //get ctd_section_id dropdownlist
+          /* section_id no long exist in CTD
+          $.ajax( {
+              url: ctd_section_id_array_query,
+              dataType: 'jsonp',
+              jsonp: '.jsonp',
+              cache: 'true',
+              success: function(data) {
+                var response = data.table.rows;
+                var select = document.getElementById("section_id");
+                  $.each(response, function(key, row) {
+                       ctd_section_id_array.push(row);
+                  });
+              },
+              error: function(xhr, ajaxOptions, thrownError){
+                if (xhr.status==404){
+                  console.log("failed to get metadata");
+                }
+              }
+           });
+           */
+
+    }
+
+    function updateMeta(dataset){
+      //this function udpates min/max displayed based on dataset selection
+      $('#expocode').empty();
+      $('#section_id').empty();
+
+      var expocode_select = document.getElementById("expocode");
+      var section_id_select = document.getElementById("section_id");
+
+      var el = document.createElement("option");
+      el.textContent = "Choose";
+      expocode_select.appendChild(el);
+      var el1 = document.createElement("option");
+      el1.textContent = "Choose";
+      section_id_select.appendChild(el1);
+
+      if(dataset =="bottle"){
+        additional_Col = additional_Col_bottle;
+        dataset_url = 'https://data.pmel.noaa.gov/generic/erddap/tabledap/cchdo_bottle';
+
+        $('#lat_range').text(bottle_lat_range);
+        $('#long_range').text(bottle_long_range);
+        $('#pressure_range').text(bottle_pressure_range);
+        $('#date_range').text(bottle_date_range);
+        $('#section_id_row').show();
+
+        bottle_expocode_array.forEach(function(data){
+          var el = document.createElement("option");
+          el.textContent = data;
+          el.value = data;
+          expocode_select.appendChild(el);
+        });
+        bottle_section_id_array.forEach(function(data){
+          var el = document.createElement("option");
+          el.textContent = data;
+          el.value = data;
+          section_id_select.appendChild(el);
+        });
+      } else if(dataset =="ctd"){
+        $('#section_id_row').hide();
+        additional_Col = additional_Col_ctd;
+        dataset_url = 'https://data.pmel.noaa.gov/generic/erddap/tabledap/cchdo_ctd';
+
+        ctd_expocode_array.forEach(function(data){
+          var el = document.createElement("option");
+          el.textContent = data;
+          el.value = data;
+          expocode_select.appendChild(el);
+        });
+        ctd_section_id_array.forEach(function(data){
+          var el = document.createElement("option");
+          el.textContent = data;
+          el.value = data;
+          section_id_select.appendChild(el);
+        });
+
+        $('#lat_range').text(ctd_lat_range);
+        $('#long_range').text(ctd_long_range);
+        $('#pressure_range').text(ctd_pressure_range);
+        $('#date_range').text(ctd_date_range);
+      }
+      resetAll();
+    }
+
+    function getTable() {
+        // in the javascript, where you would ordinarily initialize the datatable
+        var newTable = '<thead><tr>'; // start building a new table contents
+        var dataCond ='';
+        var search_Data = [];
+        dataQuery = "";
+        search_url = dataset_url+".json?";
+
+        //columns to display
+        is_bottle = dataset_url.includes("cchdo_bottle");
+        var dataCol = 'latitude%2Clongitude%2Ctime%2Cexpocode%2Cpressure';
+        if(is_bottle){
+          dataCol += '%2Csection_id';
+        }
+
+        var latMin = document.getElementById("lat_min").value;
+        var latMax = document.getElementById("lat_max").value;
+        if((latMin) && (latMax)){
+          search_Data.push(['latitude',latMin,latMax]);
+        }
+
+        var longMin = document.getElementById("long_min").value;
+        var longMax = document.getElementById("long_max").value;
+        if((longMin) && (longMax)){
+          search_Data.push(['longitude',longMin,longMax]);
+        }
+
+        var pressureMin = document.getElementById("pressure_min").value;
+        var pressureMax = document.getElementById("pressure_max").value;
+        if((pressureMin) && (pressureMax)){
+          search_Data.push(['pressure',pressureMin,pressureMax]);
+        }
+
+        var dateMin = document.getElementById("date_min").value;
+        var dateMax = document.getElementById("date_max").value;
+        if((dateMin) && (dateMax)){
+          if(dateMin.length == 4)
+          {
+            dateMin = dateMin+"-01-01";
+          }
+          if(dateMax.length == 4)
+          {
+            dateMax = dateMax+"-12-31";
+          }
+          search_Data.push(['time',dateMin,dateMax]);
+        }
+
+        var expocode = document.getElementById("expocode").value;
+        if(expocode != "Choose"){
+          search_Data.push(['expocode',expocode,'']);
+        }
+
+        var section_id = document.getElementById("section_id").value;
+        if(section_id!= "Choose" && section_id!= "" && section_id!= "------"){
+          search_Data.push(['section_id',section_id,'']);
+        }
+
+        if(search_Data.length > 0){
+          //add checked Variables to query
+          let allCheckBox = document.querySelectorAll('.additional_var_class')
+            for (let i = 0; i < allCheckBox.length; i++) {
+                if (allCheckBox[i].checked) {
+                  item_name = allCheckBox[i].id.split('box_')[1];
+                  if((item_name =="section_id") || (item_name =="station")||(item_name =="cast")||(item_name =="sample")){
+                    var item_one_val = document.getElementById(item_name).value;
+                    if(item_one_val){
+                      search_Data.push([item_name,item_one_val,'']);
+                    }
+                  }else{
+                    var item_Min = document.getElementById(item_name+"_min").value;
+                    var item_Max = document.getElementById(item_name+"_max").value;
+                    if((item_Min) && (item_Max)){
+                      search_Data.push([item_name,item_Min,item_Max]);
+                    }
+                  }
+
+                  dataCol += "%2C" + item_name;
+                }
+            }
+
+          for(let i = 0; i< search_Data.length; i++){
+            //dataCol += search_Data[i][0];
+            if ((search_Data[i][0] != 'expocode') && (search_Data[i][0] != 'section_id')
+                && (search_Data[i][0] != 'profile_id') && (search_Data[i][0] != 'station')
+                && (search_Data[i][0] != 'cast')&& (search_Data[i][0] != 'sample')){
+              dataCond += '&'+search_Data[i][0]+'>='+search_Data[i][1]+'&'+search_Data[i][0]+'<='+search_Data[i][2];
+            }
+            else{
+              if(search_Data[i][0] == 'cast'){
+                dataCond+= '&'+search_Data[i][0]+'='+search_Data[i][1];
+              } else{
+                dataCond+= '&'+search_Data[i][0]+'="'+search_Data[i][1]+'"';
+              }
+
+            }
+          }
+
+          search_url +=dataCol+dataCond;
+          dataQuery += dataCol+additional_Col+dataCond;
+          document.getElementById("data_download").style.display = "none";
+          console.log(search_url);
+
+          if($.fn.DataTable.isDataTable( '#result_table' )){
+            $('#result_table').DataTable().destroy();
+          }
+          $('#result_table').html("<h2>Fetching data from server...</h2>");
+          $("#updateTable_btn").hide();
+          $('#result_table_div').show();
+
+          // then call the data using .ajax()
+          $.ajax( {
+              url: search_url,
+              dataType: 'jsonp',
+              jsonp: '.jsonp',
+              cache: 'true',
+              success: function(data) {
+                var response = data.table
+
+                  //
+                  //result table
+                  /*
+                  // below use the first row to grab all the column names and set them in <th>s
+                  $.each(response.columnNames, function(key, value) {
+                      newTable += "<th>" + value + "</th>";
+                  });
+                  newTable += "</tr></thead><tbody>";
+
+                  // then load the data into the table
+                  $.each(response.rows, function(key, row) {
+                       newTable += "<tr>";
+                        $.each(row, function(key, fieldValue) {
+                             newTable += "<td>" + fieldValue + "</td>";
+                        });
+                       newTable += "</tr>";
+                  });
+                 newTable += '<tbody>';
+
+                 $('#result_table').html(newTable); // replace the guts of the datatable's table placeholder with the stuff we just created.
+
+                 $('#result_table').DataTable({
+                   scrollY:        "60vh",
+                   scrollCollapse: true,
+                   fixedHeader: true,
+                   paging:         false,
+                   searching: false,
+                 }).draw();
+                  */
+
+                 $("#data_download").show();
+                 $("#updateTable_btn").show();
+                 getfileType();
+                 $('#result_table_div').hide();
+
+                 var data_found_text = response.rows.length +" profiles found";
+                 $('#data_found').html(data_found_text);
+              },
+              error: function(xhr, ajaxOptions, thrownError){
+                if (xhr.status==404){
+                  //$('#result_table').DataTable().destroy();
+                  $("#data_download").hide();
+                  $("#updateTable_btn").hide();
+                  showNoresult();
+                  console.log("404");
+                }
+              }
+           });
+       }
+      }
+      function resetAll(){
+        document.getElementById("lat_min").value = null;
+        document.getElementById("lat_max").value = null;
+
+        document.getElementById("long_min").value = null;
+        document.getElementById("long_max").value = null;
+
+        document.getElementById("pressure_min").value = null;
+        document.getElementById("pressure_max").value = null;
+
+        document.getElementById("date_min").value = null;
+        document.getElementById("date_max").value = null;
+
+        document.getElementById("expocode").value = "Choose";
+        document.getElementById("section_id").value = "Choose";
+
+        document.getElementById("result_table_div").style.display = "none";
+        document.getElementById("data_download").style.display = "none";
+        document.getElementById("updateTable_btn").style.display = "none";
+      }
+      function showNoresult(){
+        var result = "<h3>No result found!</h3>";
+        try {
+          $('#result_table_div').show();
+          $('#result_table').html(result);
+        } catch (e) {alert(e);}
+      }
+
+      function getfileType(){
+        var result = "";
+        try {
+          var d = document;
+          var ft = d.getElementById("fileType").value;
+          result = dataset_url + ft.substring(0, ft.indexOf(" - ")) + "?" ;
+          d.getElementById("tUrl").value = result+dataQuery;
+        } catch (e) {alert(e);}
+      }
+      function getfile(){
+        var result = "";
+        try {
+          var d = document;
+          var ft = d.getElementById("fileType").value;
+          result = dataset_url + ft.substring(0, ft.indexOf(" - ")) + "?" ;
+          window.open(result+dataQuery,"_blank");
+        } catch (e) {alert(e);}
+      }
+
+      function fileType_onchange(){
+        getfileType();
+      }
+      function updateResultTable(){
+        var result_table=document.getElementById("result_table_div");
+        var show_result_btn = document.getElementById("updateTable_btn");
+        if(show_result_btn.value == 'Hide Result Table'){
+          show_result_btn.value = "Show Result Table";
+          result_table.style.display = "none";
+        }else if (show_result_btn.value == 'Show Result Table'){
+          show_result_btn.value = "Hide Result Table";
+          result_table.style.display = "block";
+        }
+      }
+
+      function param_checkbox(check_id_name,search_id_name){
+        var checkBox = document.getElementById(check_id_name);
+        var searc_param =document.getElementById('search_'+search_id_name);
+        var searc_input_field = document.getElementById(search_id_name);
+
+        if (checkBox.checked == true){
+          searc_param.style.display = "block";
+        } else {
+          searc_param.style.display = "none";
+          searc_input_field.value = '';
+        }
+      }
+
+      function create_additonal_dropbox(){
+                for(let i = 0; i< checkbox_array.length; i++){
+                  temp_item = '<input type="checkbox" class="additional_var_class" id="chk_box_'+checkbox_array[i]+'" onclick="param_checkbox(\'chk_box_'+checkbox_array[i]+'\','+'\''+checkbox_array[i]+'\')"/> '+checkbox_array[i]+' <br />';
+                  dropbox_html += temp_item;
+
+                  temp_vars = '<div id= "search_'+checkbox_array[i]+'" style="display:none">'+checkbox_array[i]+'<br>';
+                  if((checkbox_array[i] != 'profile_id') && (checkbox_array[i] != 'station')
+                      && (checkbox_array[i] != 'cast')&& (checkbox_array[i] != 'sample')){
+                              temp_vars +='<input id="'+checkbox_array[i]+'_min" type="text" placeholder="'+checkbox_array[i]+
+                              ' min"><input id="'+checkbox_array[i]+'_max" type="text" placeholder="'+checkbox_array[i]+' max"><br></br></div>';
+                  } else{
+                        temp_vars +='<input id="'+checkbox_array[i]+'" type="text" placeholder="'+checkbox_array[i]+'"><br></br></div>';
+                  }
+                  additional_vars_html += temp_vars;
+                }
+                $('#additional_checkbox').html(dropbox_html);
+                $('#additional_vars').html(additional_vars_html);
+      }
+
+      $( document ).ready(function() {
+
+        //extra field for download only
+        for(let i = 0; i< checkbox_array.length; i++){
+            additional_Col_bottle += "%2C" + checkbox_array[i];
+        }
+        additional_Col = additional_Col_bottle;
+        for(let i = 0; i< ctd_checkbox_array.length; i++){
+            additional_Col_ctd += "%2C" + ctd_checkbox_array[i];
+        }
+
+        //create_additonal_dropbox();
+        getMetadata();
+
+        $("#search_btn").on("click", function() {
+        });
+
+        $("#fileType").on('change', function() {
+          getfileType();
+        });
+
+        $('.btn-toggle').click(function() {
+            $(this).find('.btn').toggleClass('active');
+            $(this).find('.btn').toggleClass('btn-primary');
+            $(this).find('.btn').toggleClass('btn-default');
+            if($('.active').prop('id')=="bottle_data"){
+              dataset_url = 'https://data.pmel.noaa.gov/generic/erddap/tabledap/cchdo_bottle';
+              updateMeta("bottle");
+            } else if($('.active').prop('id')=="ctd_data"){
+              dataset_url = 'https://data.pmel.noaa.gov/generic/erddap/tabledap/cchdo_ctd';
+              updateMeta("ctd");
+            }
+        });
+      });
+</script>
+</head>
+<body>
+<header>
+    <h2>CCHDO Simple Profile Search</h2>
+</header>
+  <h4>Search and download CCHDO data by profile, instead of by full cruise track. For more options, try the advanced (ERDDAP) profile search for <a href="https://data.pmel.noaa.gov/generic/erddap/tabledap/cchdo_bottle_2021.html">bottle data</a> and <a href="https://data.pmel.noaa.gov/generic/erddap/tabledap/cchdo_ctd_2021.html">CTD data</a>.</h4><br>
+<div class="container">
+
+  Search Dataset: &nbsp;<div class="btn-group btn-toggle">
+    <button id="bottle_data" class="btn btn-primary active">Bottle</button>
+    <button id="ctd_data" class="btn btn-default">CTD</button>
+  </div>
+<br><br>
+  <div class="row">
+    <div class="col-sm-2 form-group"> Latitude <br><span id="lat_range" style="color:grey"></span></div>
+    <div class= "col-sm-3 form-group"><input class="form-control" id="lat_min" type="text" placeholder="lat min"></div>
+    <div class= "col-sm-3 form-group"><input class="form-control" id="lat_max" type="text" placeholder="lat max"></div>
+  </div>
+
+  <div class="row">
+    <div class="col-sm-2 form-group">Longitude </br><span id="long_range"  style="color:grey"></span></div>
+    <div class="col-sm-3 form-group"><input class="form-control"  id="long_min" type="text" placeholder="long min"></div>
+    <div class="col-sm-3 form-group"><input class="form-control"  id="long_max" type="text" placeholder="long max"></div>
+  </div>
+  <div class="row">
+    <div class="col-sm-2 form-group">Pressure (dbar)</br><span id="pressure_range"  style="color:grey"></span></div>
+    <div class="col-sm-3 form-group"><input class="form-control"  id="pressure_min" type="text" placeholder="pressure min"></div>
+    <div class="col-sm-3 form-group"><input class="form-control"  id="pressure_max" type="text" placeholder="pressure max"></div>
+  </div>
+  <div class="row">
+    <div class="col-sm-2 form-group">Date</br><span id="date_range"  style="color:grey"></span></div>
+    <div class="col-sm-3 form-group"><input class="form-control"  id="date_min" type="text" placeholder="start: YYYY or YYYY-MM-DD"></div>
+    <div class="col-sm-3 form-group"><input class="form-control"  id="date_max" type="text" placeholder="end:  YYYY or YYYY-MM-DD"></div>
+  </div>
+  <div class="row">
+    <div class="col-sm-2 form-group">Expocode</div>
+    <div class="col-sm-3 form-group"><select class="form-control" id="expocode"><option>Choose</option></select></div>
+  </div>
+  <div class="row" id="section_id_row">
+    <div class="col-sm-2 form-group">Section ID</div>
+    <div class="col-sm-3 form-group"><select  class="form-control" id="section_id"><option>Choose</option></select></div>
+  </div>
+<!---
+          Additional Variables
+<div id="additional_checkbox" class="param_container">
+    <input type="checkbox" id="chk_box_ctd_temperature" onclick="param_checkbox('chk_box_ctd_temperature','search_ctd_temperature')"/> ctd_temperature <br />
+</div><br>
+
+<div id="additional_vars">
+            <div id= "search_ctd_temperature" style="display:none">CTD Temperature<br>
+            <input id="ctd_temperature_min" type="text" placeholder="CTD Temperature min"><input id="ctd_temperature_max" type="text" placeholder="CTD Temperature max"><br></br></div>
+
+            <div id= "search_ctd_salinity" style="display:none">CTD Salinity<br>
+            <input id="ctd_salinity_min" type="text" placeholder="CTD Salinity min"><input id="ctd_salinity_max" type="text" placeholder="CTD Salinity max"><br></br></div>
+
+            <div id= "search_ctd_salinity_qc" style="display:none">CTD Salinity QC<br>
+            <input id="ctd_salinity_qc_min" type="text" placeholder="CTD Salinity QC min"><input id="ctd_salinity_qc_max" type="text" placeholder="CTD Salinity QC max"><br></br></div>
+
+            <div id= "search_bottle_salinity" style="display:none">Bottle Salinity<br>
+            <input id="ctd_bottle_salinity_min" type="text" placeholder="Bottle Salinity min"><input id="ctd_bottle_salinity_max" type="text" placeholder="Bottle Salinity max"><br></br></div>
+
+            <div id= "search_oxygen" style="display:none">Oxygen<br>
+            <input id="ctd_oxygen_min" type="text" placeholder="Oxygen min"><input id="ctd_oxygen_max" type="text" placeholder="Oxygen max"><br></br></div>
+</div>
+end of addtional var--->
+<div class="row"><div class="col-sm-3 form-group">
+  <button class="btn btn-md btn-primary" id='search_btn' onclick="getTable()">
+    <span class="btn-txt">Search</span>
+  </button>
+  <button class="btn btn-md" id='search_btn' onclick="resetAll()">
+    <span class="btn-txt">Reset All</span>
+  </button>
+</div></div>
+
+</div>
+<div class="container">
+<div id="details">
+<div id ="data_download" style="display:none">
+  <h3 id="data_found">Data found, please choose your download option:</h3>
+  <strong>Download as</strong>
+  <select style="height: 30px;" id="fileType" size="1" onchange="fileType_onchange()">
+      <option>.asc - View OPeNDAP-style ISO-8859-1 comma-separated text.
+      </option><option>.csv - Download a ISO-8859-1 comma-separated text table (line 1: names; line 2: units; ISO 8601 times).
+      </option><option>.csvp - Download a ISO-8859-1 .csv file with line 1: name (units). Times are ISO 8601 strings.
+      </option><option>.csv0 - Download a ISO-8859-1 .csv file without column names or units. Times are ISO 8601 strings.
+      </option><option>.dataTable - A JSON file formatted for use with the Google Visualization client library (Google Charts).
+      </option><option>.das - View the dataset's metadata via an ISO-8859-1 OPeNDAP Dataset Attribute Structure (DAS).
+      </option><option>.dds - View the dataset's structure via an ISO-8859-1 OPeNDAP Dataset Descriptor Structure (DDS).
+      </option><option>.dods - OPeNDAP clients use this to download the data in the DODS binary format.
+      </option><option>.esriCsv - Download a ISO_8859_1 .csv file for ESRI's ArcGIS 9.x and below (separate date and time columns).
+      </option><option>.fgdc - View the dataset's UTF-8 FGDC .xml metadata.
+      </option><option>.geoJson - Download longitude,latitude,otherColumns data as a UTF-8 GeoJSON .json file.
+      </option><option>.graph - View a Make A Graph web page.
+      </option><option>.help - View a web page with a description of tabledap.
+      </option><option>.html - View an OPeNDAP-style HTML Data Access Form.
+      </option><option>.htmlTable - View a UTF-8 .html web page with the data in a table. Times are ISO 8601 strings.
+      </option><option>.iso19115 - View the dataset's ISO 19115-2/19139 UTF-8 .xml metadata.
+      </option><option>.itx - Download an ISO-8859-1 Igor Text File. Each response column becomes a wave.
+      </option><option selected="selected">.json - View a table-like UTF-8 JSON file (missing value = 'null'; times are ISO 8601 strings).
+      </option><option>.jsonlCSV1 - View a UTF-8 JSON Lines CSV file with column names on line 1 (mv = 'null'; times are ISO 8601 strings).
+      </option><option>.jsonlCSV - View a UTF-8 JSON Lines CSV file without column names (mv = 'null'; times are ISO 8601 strings).
+      </option><option>.jsonlKVP - View a UTF-8 JSON Lines file with Key:Value pairs (missing value = 'null'; times are ISO 8601 strings).
+      </option><option>.mat - Download a MATLAB binary file.
+      </option><option>.nc - Download a flat, table-like, NetCDF-3 binary file with COARDS/CF/ACDD metadata.
+      </option><option>.ncHeader - View the UTF-8 header (the metadata) for the NetCDF-3 .nc file.
+      </option><option>.ncCF - Download a NetCDF-3 CF Discrete Sampling Geometries file (Contiguous Ragged Array).
+      </option><option>.ncCFHeader - View the UTF-8 header (the metadata) for the .ncCF file.
+      </option><option>.ncCFMA - Download a NetCDF-3 CF Discrete Sampling Geometries file (Multidimensional Array).
+      </option><option>.ncCFMAHeader - View the UTF-8 header (the metadata) for the .ncCFMA file.
+      </option><option>.nccsv - Download a NetCDF-3-like 7-bit ASCII NCCSV .csv file with COARDS/CF/ACDD metadata.
+      </option><option>.nccsvMetadata - View the dataset's metadata as the top half of a 7-bit ASCII NCCSV .csv file.
+      </option><option>.ncoJson - Download a UTF-8 NCO lvl=2 JSON file with COARDS/CF/ACDD metadata.
+      </option><option>.odvTxt - Download longitude,latitude,time,otherColumns as an ISO-8859-1 ODV Generic Spreadsheet File (.txt).
+      </option><option>.subset - View an HTML form which uses faceted search to simplify picking subsets of the data.
+      </option><option>.tsv - Download a ISO-8859-1 tab-separated text table (line 1: names; line 2: units; ISO 8601 times).
+      </option><option>.tsvp - Download a ISO-8859-1 .tsv file with line 1: name (units). Times are ISO 8601 strings.
+      </option><option>.tsv0 - Download a ISO-8859-1 .tsv file without column names or units. Times are ISO 8601 strings.
+      </option><option>.wav - Download a .wav audio file. All columns must be numeric and of the same type.
+      </option><option>.xhtml - View a UTF-8 XHTML (XML) file with the data in a table. Times are ISO 8601 strings.
+      </option><option>.kml - View a .kml file, suitable for Google Earth.
+      </option><option>.smallPdf - View a small .pdf image file with a graph or map.
+      </option><option>.pdf - View a standard, medium-sized .pdf image file with a graph or map.
+      </option><option>.largePdf - View a large .pdf image file with a graph or map.
+      </option><option>.smallPng - View a small .png image file with a graph or map.
+      </option><option>.png - View a standard, medium-sized .png image file with a graph or map.
+      </option><option>.largePng - View a large .png image file with a graph or map.
+      </option><option>.transparentPng - View a .png image file (just the data, without axes, landmask, or legend).
+      </option>
+    </select>
+    <input class="" type="button" id="getFile" value="Get" onclick="getfile()">
+    <br><br>
+    <strong>Query URL: </strong>
+    <input  style="" type="text" id="tUrl" value="" onkeypress=" var key = window.event? event.keyCode : event.which? event.which : 0;  return key != 13;" size="91" maxlength="1000">
+    <br>Save to re-run query in the future
+</div><br><br>
+<!--
+<input class="y" type="button" id="updateTable_btn" value="Show Result Table" onclick="updateResultTable()" style="display:none">
+-->
+<div id="result_table_div"><table id="result_table" class="display" style="width:100%"></table></div>
+
+</div>
+</body>
+</html>
