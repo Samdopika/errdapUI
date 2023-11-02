@@ -12,8 +12,23 @@ var additional_Col = '';
 var additional_Col_bottle = '';
 var additional_Col_ctd = '';
 
+var config = {};
+
+// Fetch configurations when the page loads
+$(document).ready(function() {
+  $.getJSON('path/to/config.json', function(data) {
+    config = data;  // Save the fetched configurations
+
+    // Now you can use the configurations
+    var cchdo_bottle_dataset_url = config.cchdo_bottle_dataset_url;
+    var main_erddap_url_config = config.main_erddap_url_config;
+  });
+});
+
+
+
 // main ERDDAP site URL
-var main_erddap_url = 'https://data.pmel.noaa.gov/generic/erddap/';
+var main_erddap_url = main_erddap_url_config;
 
 //cchdo dataset URL
 var cchdo_bottle_dataset_url = main_erddap_url + 'tabledap/cchdo_bottle';
@@ -121,6 +136,7 @@ var ctd_section_id_array = [];
 
 var dataQuery = "";
 var dataset_url ='';
+
 
 function getMetadata(){
   //json index from https://data.pmel.noaa.gov/generic/erddap/info/cchdo_bottle/index.json
