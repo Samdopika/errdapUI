@@ -16,7 +16,7 @@ var config = {};
 
 // Fetch configurations when the page loads
 $(document).ready(function() {
-  $.getJSON('path/to/config.json', function(data) {
+  $.getJSON('config.json', function(data) {
     config = data;  // Save the fetched configurations
 
     // Now you can use the configurations
