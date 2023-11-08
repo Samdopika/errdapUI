@@ -14,34 +14,29 @@ var additional_Col_ctd = '';
 
 var config = {};
 
-// Fetch configurations when the page loads
-$(document).ready(function() {
-  $.getJSON('config.json', function(data) {
-    config = data;  // Save the fetched configurations
+// main ERDDAP site URL
+var main_erddap_url;
 
-    // Now you can use the configurations
-    var cchdo_bottle_dataset_url = config.cchdo_bottle_dataset_url;
-    var main_erddap_url_config = config.main_erddap_url_config;
-  });
+// Fetch configurations when the page loads
+$.getJSON('config.json', function(data) {
+  config = data;  // Save the fetched configurations
+
+  // Now you can use the configurations
+  main_erddap_url = config.main_erddap_url_config;
 });
 
-
-
-// main ERDDAP site URL
-var main_erddap_url = main_erddap_url_config;
-
 //cchdo dataset URL
-var cchdo_bottle_dataset_url = main_erddap_url + 'tabledap/cchdo_bottle';
-var cchdo_ctd_dataset_url = main_erddap_url+ 'tabledap/cchdo_ctd';
+var cchdo_bottle_dataset_url;
+var cchdo_ctd_dataset_url;
 
 //query links to gete dropdown menu items
-var bottle_expocode_array_query = cchdo_bottle_dataset_url + '.json?expocode&distinct()&orderBy(%22expocode%22)';
-var bottle_section_id_array_query = cchdo_bottle_dataset_url + '.json?section_id&distinct()&orderBy(%22section_id%22)';
-var ctd_expocode_array_query = cchdo_ctd_dataset_url + '.json?expocode&distinct()&orderBy(%22expocode%22)';
+var bottle_expocode_array_query;
+var bottle_section_id_array_query;
+var ctd_expocode_array_query;
 
 //dataset metadata json URL
-cchdo_bottle_metadata = main_erddap_url + 'info/cchdo_bottle/index.json';
-cchdo_ctd_metadata = main_erddap_url + 'info/cchdo_ctd/index.json';
+var cchdo_bottle_metadata;
+var cchdo_ctd_metadata;
 
 console.log("JavaScript is connected!");
 
@@ -622,6 +617,21 @@ function getTable() {
             $('#additional_vars').html(additional_vars_html);
   }
 
+  function init_URLs(){
+    //cchdo dataset URL
+    cchdo_bottle_dataset_url = main_erddap_url + 'tabledap/cchdo_bottle';
+    cchdo_ctd_dataset_url = main_erddap_url+ 'tabledap/cchdo_ctd';
+
+    //query links to gete dropdown menu items
+    bottle_expocode_array_query = cchdo_bottle_dataset_url + '.json?expocode&distinct()&orderBy(%22expocode%22)';
+    bottle_section_id_array_query = cchdo_bottle_dataset_url + '.json?section_id&distinct()&orderBy(%22section_id%22)';
+    ctd_expocode_array_query = cchdo_ctd_dataset_url + '.json?expocode&distinct()&orderBy(%22expocode%22)';
+
+    //dataset metadata json URL
+    cchdo_bottle_metadata = main_erddap_url + 'info/cchdo_bottle/index.json';
+    cchdo_ctd_metadata = main_erddap_url + 'info/cchdo_ctd/index.json';
+  }
+
   $( document ).ready(function() {
 
     //extra field for download only
@@ -632,6 +642,9 @@ function getTable() {
     for(let i = 0; i< ctd_checkbox_array.length; i++){
         additional_Col_ctd += "%2C" + ctd_checkbox_array[i];
     }
+
+    //ini init_URLs
+    init_URLs();
 
     //create_additonal_dropbox();
     getMetadata();
