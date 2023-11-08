@@ -1,5 +1,3 @@
 {
-    "main_erddap_url_config": "https://data.pmel.noaa.gov/generic/erddap/",
-    "cchdo_bottle_dataset_url": "https://data.pmel.noaa.gov/generic/erddap/tabledap/cchdo_bottle"
+    "main_erddap_url_config": "https://data.pmel.noaa.gov/generic/erddap/"
   }
-  
