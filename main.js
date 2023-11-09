@@ -668,4 +668,6 @@ function getTable() {
           updateMeta("ctd");
         }
     });
+
+    updateMeta("bottle");
   });
