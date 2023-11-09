@@ -617,6 +617,30 @@ function getTable() {
             $('#additional_vars').html(additional_vars_html);
   }
 
+// Function to display the size of the file
+  function getFileSize(url) {
+  var xhr = new XMLHttpRequest();
+  xhr.open('HEAD', url, true);
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState === XMLHttpRequest.DONE) {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        var size = xhr.getResponseHeader('Content-Length');
+        if(size !== null) {
+          var sizeInMegabytes = (size / (1024 * 1024)).toFixed(2);
+          document.getElementById('fileSizeValue').textContent = sizeInMegabytes;
+          document.getElementById('fileSizeDisplay').style.display = 'block';
+        } else {
+          document.getElementById('fileSizeValue').textContent = 'Size information not available';
+        }
+      } else {
+        document.getElementById('fileSizeValue').textContent = 'Could not get file size';
+      }
+    }
+  };
+  xhr.send();
+}
+
+
   function init_URLs(){
     //cchdo dataset URL
     cchdo_bottle_dataset_url = main_erddap_url + 'tabledap/cchdo_bottle';
