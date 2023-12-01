@@ -18,12 +18,15 @@ var config = {};
 var main_erddap_url;
 
 // Fetch configurations when the page loads
+/*
 $.getJSON('config.json', function(data) {
   config = data;  // Save the fetched configurations
 
   // Now you can use the configurations
   main_erddap_url = config.main_erddap_url_config;
 });
+*/
+main_erddap_url="https://data.pmel.noaa.gov/generic/erddap/";
 
 //cchdo dataset URL
 var cchdo_bottle_dataset_url;
