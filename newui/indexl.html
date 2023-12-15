@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CCHDO Simple Profile Search</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cchdo.ucsd.edu/static/lib/bootstrap/3.3.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="main.js"></script>
+</head>
+<body>
+    <header>
+        <h2>CCHDO Simple Profile Search</h2>
+    </header>
+    <h4>Search and download CCHDO data by profile, instead of by full cruise track. For more options, try the advanced (ERDDAP) profile search for <a href="https://data.pmel.noaa.gov/generic/erddap/tabledap/cchdo_bottle.html">bottle data</a> and <a href="https://data.pmel.noaa.gov/generic/erddap/tabledap/cchdo_ctd.html">CTD data</a>.</h4>
+    
+    <div class="dashboard">
+        <div class="left-panel">
+            <!-- Search Dataset Buttons -->
+            <div class="btn-group btn-toggle">
+                <button id="bottle_data" class="btn btn-primary active">Bottle</button>
+                <button id="ctd_data" class="btn btn-default">CTD</button>
+            </div>
+            <br><br>
+
+            <!-- Search Fields -->
+            <div class="search-fields">
+                <!-- Latitude -->
+                <div class="row">
+                    <div class="col-sm-2 form-group">Latitude <br><span id="lat_range" style="color:grey"></span></div>
+                    <div class="col-sm-3 form-group"><input class="form-control" id="lat_min" type="text" placeholder="lat min"></div>
+                    <div class="col-sm-3 form-group"><input class="form-control" id="lat_max" type="text" placeholder="lat max"></div>
+                </div>
+
+                <!-- Longitude -->
+                <div class="row">
+                    <div class="col-sm-2 form-group">Longitude <br><span id="long_range" style="color:grey"></span></div>
+                    <div class="col-sm-3 form-group"><input class="form-control" id="long_min" type="text" placeholder="long min"></div>
+                    <div class="col-sm-3 form-group"><input class="form-control" id="long_max" type="text" placeholder="long max"></div>
+                </div>
+
+                <!-- Pressure -->
+                <div class="row">
+                    <div class="col-sm-2 form-group">Pressure <br><span id="pressure_range" style="color:grey"></span></div>
+                    <div class="col-sm-3 form-group"><input class="form-control" id="pressure_min" type="text" placeholder="pressure min"></div>
+                    <div class="col-sm-3 form-group"><input class="form-control" id="pressure_max" type="text" placeholder="pressure max"></div>
+                </div>
+
+                <!-- Date -->
+                <div class="row">
+                    <div class="col-sm-2 form-group">Date <br><span id="date_range" style="color:grey"></span></div>
+                    <div class="col-sm-3 form-group"><input class="form-control" id="date_min" type="text" placeholder="start: YYYY-MM-DD"></div>
+                    <div class="col-sm-3 form-group"><input class="form-control" id="date_max" type="text" placeholder="end: YYYY-MM-DD"></div>
+                </div>
+
+                <!-- Expocode -->
+                <div class="row">
+                    <div class="col-sm-2 form-group">Expocode</div>
+                    <div class="col-sm-3 form-group"><select class="form-control" id="expocode"><option>Choose</option></select></div>
+                </div>
+
+                <!-- Section ID -->
+                <div class="row">
+                    <div class="col-sm-2 form-group">Section ID</div>
+                    <div class="col-sm-3 form-group"><select class="form-control" id="section_id"><option>Choose</option></select></div>
+                </div>
+
+                <!-- Search and Reset Buttons -->
+                <div class="row">
+                    <div class="col-sm-3 form-group">
+                        <button class="btn btn-md btn-primary" id='search_btn' onclick="getTable()">Search</button>
+                        <button class="btn btn-md" id='reset_btn' onclick="resetAll()">Reset All</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <!-- Results and Download Options -->
+            <div id="details">
+                <div id ="data_download" style="display:none">
+                    <h3 id="data_found">Data found, please choose your download option:</h3>
+                    <strong>Download as</strong>
+                    <select style="height: 30px;" id="fileType" size="1">
+                        <!-- File type options -->
+                        <option>.asc - View OPeNDAP-style ISO-8859-1 comma-separated text.
+                        </option><option>.csv - Download a ISO-8859-1 comma-separated text table (line 1: names; line 2: units; ISO 8601 times).
+                        </option><option>.csvp - Download a ISO-8859-1 .csv file with line 1: name (units). Times are ISO 8601 strings.
+                        </option><option>.csv0 - Download a ISO-8859-1 .csv file without column names or units. Times are ISO 8601 strings.
+                        </option><option>.dataTable - A JSON file formatted for use with the Google Visualization client library (Google Charts).
+                        </option><option>.das - View the dataset's metadata via an ISO-8859-1 OPeNDAP Dataset Attribute Structure (DAS).
+                        </option><option>.dds - View the dataset's structure via an ISO-8859-1 OPeNDAP Dataset Descriptor Structure (DDS).
+                        </option><option>.dods - OPeNDAP clients use this to download the data in the DODS binary format.
+                        </option><option>.esriCsv - Download a ISO_8859_1 .csv file for ESRI's ArcGIS 9.x and below (separate date and time columns).
+                        </option><option>.fgdc - View the dataset's UTF-8 FGDC .xml metadata.
+                        </option><option>.geoJson - Download longitude,latitude,otherColumns data as a UTF-8 GeoJSON .json file.
+                        </option><option>.graph - View a Make A Graph web page.
+                        </option><option>.help - View a web page with a description of tabledap.
+                        </option><option>.html - View an OPeNDAP-style HTML Data Access Form.
+                        </option><option>.htmlTable - View a UTF-8 .html web page with the data in a table. Times are ISO 8601 strings.
+                        </option><option>.iso19115 - View the dataset's ISO 19115-2/19139 UTF-8 .xml metadata.
+                        </option><option>.itx - Download an ISO-8859-1 Igor Text File. Each response column becomes a wave.
+                        </option><option selected="selected">.json - View a table-like UTF-8 JSON file (missing value = 'null'; times are ISO 8601 strings).
+                        </option><option>.jsonlCSV1 - View a UTF-8 JSON Lines CSV file with column names on line 1 (mv = 'null'; times are ISO 8601 strings).
+                        </option><option>.jsonlCSV - View a UTF-8 JSON Lines CSV file without column names (mv = 'null'; times are ISO 8601 strings).
+                        </option><option>.jsonlKVP - View a UTF-8 JSON Lines file with Key:Value pairs (missing value = 'null'; times are ISO 8601 strings).
+                        </option><option>.mat - Download a MATLAB binary file.
+                        </option><option>.nc - Download a flat, table-like, NetCDF-3 binary file with COARDS/CF/ACDD metadata.
+                        </option><option>.ncHeader - View the UTF-8 header (the metadata) for the NetCDF-3 .nc file.
+                        </option><option>.ncCF - Download a NetCDF-3 CF Discrete Sampling Geometries file (Contiguous Ragged Array).
+                        </option><option>.ncCFHeader - View the UTF-8 header (the metadata) for the .ncCF file.
+                        </option><option>.ncCFMA - Download a NetCDF-3 CF Discrete Sampling Geometries file (Multidimensional Array).
+                        </option><option>.ncCFMAHeader - View the UTF-8 header (the metadata) for the .ncCFMA file.
+                        </option><option>.nccsv - Download a NetCDF-3-like 7-bit ASCII NCCSV .csv file with COARDS/CF/ACDD metadata.
+                        </option><option>.nccsvMetadata - View the dataset's metadata as the top half of a 7-bit ASCII NCCSV .csv file.
+                        </option><option>.ncoJson - Download a UTF-8 NCO lvl=2 JSON file with COARDS/CF/ACDD metadata.
+                        </option><option>.odvTxt - Download longitude,latitude,time,otherColumns as an ISO-8859-1 ODV Generic Spreadsheet File (.txt).
+                        </option><option>.subset - View an HTML form which uses faceted search to simplify picking subsets of the data.
+                        </option><option>.tsv - Download a ISO-8859-1 tab-separated text table (line 1: names; line 2: units; ISO 8601 times).
+                        </option><option>.tsvp - Download a ISO-8859-1 .tsv file with line 1: name (units). Times are ISO 8601 strings.
+                        </option><option>.tsv0 - Download a ISO-8859-1 .tsv file without column names or units. Times are ISO 8601 strings.
+                        </option><option>.wav - Download a .wav audio file. All columns must be numeric and of the same type.
+                        </option><option>.xhtml - View a UTF-8 XHTML (XML) file with the data in a table. Times are ISO 8601 strings.
+                        </option><option>.kml - View a .kml file, suitable for Google Earth.
+                        </option><option>.smallPdf - View a small .pdf image file with a graph or map.
+                        </option><option>.pdf - View a standard, medium-sized .pdf image file with a graph or map.
+                        </option><option>.largePdf - View a large .pdf image file with a graph or map.
+                        </option><option>.smallPng - View a small .png image file with a graph or map.
+                        </option><option>.png - View a standard, medium-sized .png image file with a graph or map.
+                        </option><option>.largePng - View a large .png image file with a graph or map.
+                        </option><option>.transparentPng - View a .png image file (just the data, without axes, landmask, or legend).
+                    </select>
+                    <input class="btn btn-md btn-primary" type="button" id="getFile" value="Get">
+
+                    <br><br>
+                    <strong>Query URL: </strong>
+                    <input type="text" id="tUrl" value="" size="91" maxlength="1000">
+                    <br>Save to re-run query in the future
+                </div>
+                <div id="result_table_div"><table id="result_table" class="display" style="width:100%"></table></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

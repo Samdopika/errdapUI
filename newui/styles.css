@@ -1,0 +1,111 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(45deg, #f0f2f5, #e0e5ea);
+    color: #333;
+}
+
+header {
+    background-color: #376ab7;  /* Darkened blue */
+    height: 12%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+}
+
+header:hover {
+    box-shadow: 0 8px 26px rgba(0, 0, 0, 0.15);
+    transform: scale(1.02);
+}
+
+header h2 {
+    color: white;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+h4 {
+    font-size: 18px;
+    color: #4A90E2;
+    margin: 20px 0;
+    text-align: center;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.dashboard {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+}
+
+.left-panel, .right-panel {
+    flex: 1;
+    margin: 10px;
+    background-color: white;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    padding: 20px;
+    border-radius: 7px;
+}
+
+.left-panel {
+    margin-right: 5px;
+}
+
+.right-panel {
+    margin-left: 5px;
+}
+
+.btn-group .btn {
+    transition: background-color 0.3s, color 0.3s, transform 0.3s;
+}
+
+.btn-primary.active, .btn-primary:hover {
+    background-color: #4A90E2;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.btn-default {
+    background-color: white;
+    color: #4A90E2;
+}
+
+.form-group input, .form-group select {
+    border: 1px solid #e6e6e6;
+    border-radius: 4px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    padding: 5px 10px;
+    appearance: none;
+    background-color: white;
+}
+
+.form-group input:focus, .form-group select:focus {
+    border-color: #4A90E2;
+    box-shadow: 0 0 12px rgba(74, 144, 226, 0.3);
+    outline: none;
+}
+
+button.btn {
+    border-radius: 7px;
+    font-weight: bold;
+    margin: 5px;
+    transition: transform 0.3s;
+}
+
+button.btn:hover {
+    transform: translateY(-2px);
+}
+
+button.btn:active {
+    transform: translateY(0px);
+}
+
+button.btn.btn-primary {
+    background-color: #4A90E2;
+    color: white;
+}
+
+.btn-secondary {
+    background-color: #f0f2
