@@ -476,9 +476,9 @@ function getTable() {
           success: function(data) {
             var response = data.table
 
-              //
+              
               //result table
-              /*
+              
               // below use the first row to grab all the column names and set them in <th>s
               $.each(response.columnNames, function(key, value) {
                   newTable += "<th>" + value + "</th>";
@@ -504,7 +504,7 @@ function getTable() {
                paging:         false,
                searching: false,
              }).draw();
-              */
+            
 
              $("#data_download").show();
              $("#updateTable_btn").show();
